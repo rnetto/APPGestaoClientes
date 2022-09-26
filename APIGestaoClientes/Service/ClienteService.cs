@@ -1,5 +1,6 @@
 ﻿using APIGestaoClientes.DTO;
 using APIGestaoClientes.Model;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,16 +12,22 @@ namespace APIGestaoClientes.Service
 {
     public class ClienteService
     {
-        internal bool ValidaCliente(ClienteDTO cliente)
+        private readonly string _connectionString;
+        public ClienteService(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        internal bool ValidaCliente(string nome, string cpf)
         {
             char[] removChar = { ' ', '-', '*', '.', '!', '@', '#', '$', '%', '¨', '&', '(', ')', '_', '+', '{', '}', '?', ';', ':', '.', '>', '<', '|', '/' };
-            var nome = cliente.Nome.TrimEnd(removChar);
-            var cpf = cliente.CPF.TrimEnd(removChar);
+            var nomeTrim = nome.TrimEnd(removChar);
+            var cpfTrim = cpf.TrimEnd(removChar);
 
-            if (cpf.Length != 11)
+            if (cpfTrim.Length != 11)
                 return false;
 
-            if (nome.Length < 3)
+            if (nomeTrim.Length < 3)
                 return false;
 
             return true;
@@ -30,16 +37,43 @@ namespace APIGestaoClientes.Service
         {
             var clienteR = new ClienteDTO();
             var query = String.Format(@"stp_Get_Cliente");
-            using (var conn = new SqlConnection())
+
+            using (var conn = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(query, conn);
                 command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.Add(new SqlParameter("id_cliente", cliente.Id == null ? DBNull.Value : (int)cliente.Id));
+                command.Parameters.Add(new SqlParameter("id_cliente", cliente.IdCliente == null ? DBNull.Value : (int)cliente.IdCliente));
                 command.Parameters.Add(new SqlParameter("nome", cliente.Nome == null ? DBNull.Value : cliente.Nome));
                 command.Parameters.Add(new SqlParameter("cpf", cliente.CPF == null ? DBNull.Value : cliente.CPF));
                 command.Parameters.Add(new SqlParameter("sexo", cliente.Sexo == null ? DBNull.Value : cliente.Sexo));
                 command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id == null ? DBNull.Value : cliente.SituacaoCliente.Id));
+                command.Parameters.Add(new SqlParameter("situacao_cliente_descricao", cliente.SituacaoCliente.DescricaoSituacao == null ? DBNull.Value : cliente.SituacaoCliente.DescricaoSituacao));
                 command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id == null ? DBNull.Value : cliente.TipoCliente.Id));
+                command.Parameters.Add(new SqlParameter("tipo_cliente_descricao", cliente.TipoCliente.DescricaoTipoCliente == null ? DBNull.Value : cliente.TipoCliente.DescricaoTipoCliente));
+
+
+                if (clienteR.SituacaoCliente != null)
+                {
+                    if (clienteR.SituacaoCliente.Id != null)
+                    {
+                        command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id));
+                    }
+                    if (clienteR.SituacaoCliente.DescricaoSituacao != null)
+                    {
+                        command.Parameters.Add(new SqlParameter("situacao_cliente_descricao", cliente.SituacaoCliente.DescricaoSituacao));
+                    }
+                }
+                if (clienteR.TipoCliente != null && clienteR.TipoCliente.Id != null)
+                {
+                    if (clienteR.TipoCliente.Id != null)
+                    {
+                        command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id));
+                    }
+                    if (clienteR.TipoCliente.DescricaoTipoCliente != null)
+                    {
+                        command.Parameters.Add(new SqlParameter("tipo_cliente_descricao", cliente.TipoCliente.DescricaoTipoCliente));
+                    }
+                }
 
                 await conn.OpenAsync();
 
@@ -48,21 +82,36 @@ namespace APIGestaoClientes.Service
                     var retorno = await command.ExecuteReaderAsync();
                     while (await retorno.ReadAsync())
                     {
-                        clienteR.Id = Convert.ToInt32(retorno["id_cliente"].ToString());
-                        if (clienteR.Id != 0)
+                        clienteR.IdCliente = Convert.ToInt32(retorno["id_cliente"].ToString());
+                        if (clienteR.IdCliente != 0)
                         {
                             clienteR.Nome = retorno["nome"].ToString();
                             clienteR.CPF = retorno["cpf"].ToString();
                             clienteR.Sexo = retorno["sexo"].ToString();
-                            clienteR.SituacaoCliente.Id = Convert.ToInt32(retorno["id_situacao_cliente"].ToString());
-                            clienteR.SituacaoCliente.DescricaoSituacao = retorno["descricao_situacao_cliente"].ToString();
-                            clienteR.TipoCliente.Id = Convert.ToInt32(retorno["id_tipo_cliente"].ToString());
-                            clienteR.TipoCliente.DescricaoTipoCliente = retorno["descricao_tipo_cliente"].ToString();
+                            clienteR.SituacaoCliente = new SituacaoCliente
+                            {
+                                Id = Convert.ToInt32(retorno["id_situacao_cliente"].ToString()),
+                                DescricaoSituacao = retorno["descricao_situacao_cliente"].ToString()
+                            };
+                            clienteR.TipoCliente = new TipoCliente
+                            {
+                                Id = Convert.ToInt32(retorno["id_tipo_cliente"].ToString()),
+                                DescricaoTipoCliente = retorno["descricao_tipo_cliente"].ToString()
+                            };
                         }
                         else
                         {
-                            string msg = retorno["id_status"].ToString() + " - " + retorno["status_code"].ToString();
-                            throw new Exception(msg);
+                            string msg;
+                            if (retorno["id_status"].ToString() == "400")
+                            {
+                                msg = retorno["id_status"].ToString() + " - " + retorno["status_code"].ToString();
+                                throw new Exception(msg);
+                            }
+                            else
+                            {
+                                clienteR = null;
+                            }
+
                         }
                     }
                     await retorno.CloseAsync();
@@ -74,7 +123,6 @@ namespace APIGestaoClientes.Service
                 }
             }
 
-
             return clienteR;
         }
 
@@ -82,7 +130,7 @@ namespace APIGestaoClientes.Service
         {
             var clientesR = new List<ClienteDTO>();
             var query = String.Format(@"stp_Get_Cliente");
-            using (var conn = new SqlConnection())
+            using (var conn = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(query, conn);
                 command.CommandType = CommandType.StoredProcedure;
@@ -94,33 +142,48 @@ namespace APIGestaoClientes.Service
                 try
                 {
                     var retorno = await command.ExecuteReaderAsync();
-                    while (await retorno.ReadAsync())
+                    if (retorno.FieldCount == 3)
                     {
-                        clientesR.Add(new ClienteDTO
+                        while (await retorno.ReadAsync())
                         {
-                            Id = Convert.ToInt32(retorno["id_cliente"].ToString()),
-                            Nome = retorno["nome"].ToString(),
-                            CPF = retorno["cpf"].ToString(),
-                            Sexo = retorno["sexo"].ToString(),
-                            SituacaoCliente = new SituacaoCliente
+                            string msg;
+                            if (retorno["id_status"].ToString() == "400")
                             {
-                                Id = Convert.ToInt32(retorno["id_situacao_cliente"].ToString()),
-                                DescricaoSituacao = retorno["descricao_situacao_cliente"].ToString()
-                            },
-                            TipoCliente = new TipoCliente
-                            {
-                                Id = Convert.ToInt32(retorno["id_tipo_cliente"].ToString()),
-                                DescricaoTipoCliente = retorno["descricao_tipo_cliente"].ToString()
+                                msg = retorno["id_status"].ToString() + " - " + retorno["status_code"].ToString();
+                                throw new Exception(msg);
                             }
-                        });
+                            else
+                            {
+                                clientesR = null;
+                            }
+                        }
                     }
+                    else
+                    {
+                        while (await retorno.ReadAsync())
+                        {
+                            clientesR.Add(new ClienteDTO
+                            {
+                                IdCliente = Convert.ToInt32(retorno["id_cliente"].ToString()),
+                                Nome = retorno["nome"].ToString(),
+                                CPF = retorno["cpf"].ToString(),
+                                Sexo = retorno["sexo"].ToString(),
+                                SituacaoCliente = new SituacaoCliente
+                                {
+                                    Id = Convert.ToInt32(retorno["id_situacao_cliente"].ToString()),
+                                    DescricaoSituacao = retorno["descricao_situacao_cliente"].ToString()
+                                },
+                                TipoCliente = new TipoCliente
+                                {
+                                    Id = Convert.ToInt32(retorno["id_tipo_cliente"].ToString()),
+                                    DescricaoTipoCliente = retorno["descricao_tipo_cliente"].ToString()
+                                }
+                            });
+                        }
+                    }
+
                     await retorno.CloseAsync();
 
-                    if (clientesR.FirstOrDefault().Id == 0)
-                    {
-                        string msg = retorno["id_status"].ToString() + " - " + retorno["status_code"].ToString();
-                        throw new Exception(msg);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -134,10 +197,14 @@ namespace APIGestaoClientes.Service
         internal async Task<int> PostCliente(ClienteDTO cliente)
         {
             var clienteR = 0;
+            var statusCode = 0;
+            var msg = "";
+
             var query = String.Format(@"stp_Post_Cliente");
-            using (var conn = new SqlConnection())
+            using (var conn = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(query, conn);
+                command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.Add(new SqlParameter("nome", cliente.Nome == null ? DBNull.Value : cliente.Nome));
                 command.Parameters.Add(new SqlParameter("cpf", cliente.CPF == null ? DBNull.Value : cliente.CPF));
                 command.Parameters.Add(new SqlParameter("sexo", cliente.Sexo == null ? DBNull.Value : cliente.Sexo));
@@ -151,25 +218,34 @@ namespace APIGestaoClientes.Service
                 try
                 {
                     var retorno = await command.ExecuteReaderAsync();
-
+                    
                     while (await retorno.ReadAsync())
                     {
-                        clienteR = Convert.ToInt32(retorno["id_cliente"].ToString());                        
+                        clienteR = Convert.ToInt32(retorno["id_cliente"].ToString());
+                        statusCode = Convert.ToInt32(retorno["id_status"].ToString());
+                        msg = retorno["msg"].ToString();
                     }
 
                     await retorno.CloseAsync();
-                    
+
+                    if (clienteR == 0 && statusCode == 400)
+                    {
+                        throw new Exception("Não foi possível inserir os dados do cliente. " + msg);
+                    }
+
+                    await tran.CommitAsync();
+
                     return clienteR;
                 }
                 catch (Exception ex)
                 {
-                    tran.Rollback();
-                    throw new Exception(ex.Message);                                       
+                    await tran.RollbackAsync();
+                    throw new Exception(ex.Message);
                 }
                 finally
                 {
-                    conn.Dispose();
-                    conn.Close();
+                    await conn.DisposeAsync();
+                    await conn.CloseAsync();
                 }
             }
         }
@@ -177,11 +253,15 @@ namespace APIGestaoClientes.Service
         internal async Task<int> PutCliente(ClienteDTO cliente)
         {
             var clienteR = 0;
+            var msg = "";
+            var statusCode = 0;
+
             var query = String.Format(@"stp_Put_Cliente");
-            using (var conn = new SqlConnection())
+            using (var conn = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(query, conn);
-                command.Parameters.Add(new SqlParameter("id_cliente", cliente.Id == null ? DBNull.Value : (int)cliente.Id));
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("id_cliente", cliente.IdCliente == null ? DBNull.Value : (int)cliente.IdCliente));
                 command.Parameters.Add(new SqlParameter("nome", cliente.Nome == null ? DBNull.Value : cliente.Nome));
                 command.Parameters.Add(new SqlParameter("cpf", cliente.CPF == null ? DBNull.Value : cliente.CPF));
                 command.Parameters.Add(new SqlParameter("sexo", cliente.Sexo == null ? DBNull.Value : cliente.Sexo));
@@ -199,31 +279,43 @@ namespace APIGestaoClientes.Service
                     while (await retorno.ReadAsync())
                     {
                         clienteR = Convert.ToInt32(retorno["id_cliente"].ToString());
+                        statusCode = Convert.ToInt32(retorno["id_status"].ToString());
+                        msg = retorno["msg"].ToString();
                     }
 
                     await retorno.CloseAsync();
+
+                    if(clienteR == 0 && statusCode == 400)
+                    {
+                        throw new Exception("Não foi possível alterar os dados do cliente. " + msg);
+                    }
+                    
+                    await tran.CommitAsync();
 
                     return clienteR;
                 }
                 catch (Exception ex)
                 {
-                    tran.Rollback();
+                    await tran.RollbackAsync();
                     throw new Exception(ex.Message);
                 }
                 finally
                 {
-                    conn.Dispose();
-                    conn.Close();
+                    await conn.DisposeAsync();
+                    await conn.CloseAsync();
                 }
             }
         }
 
         internal async Task DeleteCliente(int id, string cpf)
-        {           
+        {
+            var statusCode = 0;
+            var msg = "";
             var query = String.Format(@"stp_Delete_Cliente");
-            using (var conn = new SqlConnection())
+            using (var conn = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(query, conn);
+                command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.Add(new SqlParameter("id_cliente", id));
                 command.Parameters.Add(new SqlParameter("cpf", cpf));
 
@@ -233,18 +325,31 @@ namespace APIGestaoClientes.Service
 
                 try
                 {
-                    await command.ExecuteNonQueryAsync();
+                    var retorno = await command.ExecuteReaderAsync();
+                    while (await retorno.ReadAsync())
+                    {
+                        statusCode = Convert.ToInt32(retorno["id_status"].ToString());
+                        msg = retorno["msg"].ToString();
+                    }
+                    await retorno.CloseAsync();
+
+                    if(statusCode == 400)
+                    {
+                        throw new Exception(msg);
+                    }
+
+                    await tran.CommitAsync();
                     await conn.CloseAsync();
                 }
                 catch (Exception ex)
                 {
-                    tran.Rollback();
+                    await tran.RollbackAsync();
                     throw new Exception(ex.Message);
                 }
                 finally
                 {
-                    conn.Dispose();
-                    conn.Close();
+                    await conn.DisposeAsync();
+                    await conn.CloseAsync();
                 }
             }
         }

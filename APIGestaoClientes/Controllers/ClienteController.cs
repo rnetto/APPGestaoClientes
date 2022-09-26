@@ -2,17 +2,23 @@
 using APIGestaoClientes.Model;
 using APIGestaoClientes.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace APIGestaoClientes.Controllers
 {
+    [Route("api/[controller]")]
     public class ClienteController : ControllerBase
     {
         private readonly ClienteService _clienteService;
+        public ClienteController(IConfiguration configuration)
+        {
+            _clienteService = new ClienteService(configuration);
+        }
 
-        [HttpGet]
+        [HttpGet("get")]
         public async Task<IActionResult> ListaCliente(int? qtdItens, int? numPagina)
         {
             try
@@ -29,6 +35,11 @@ namespace APIGestaoClientes.Controllers
 
                 var listaCliente = await _clienteService.GetListaCliente(qtdItens, numPagina);
 
+                if (listaCliente == null)
+                {
+                    return NotFound("Não há clientes registrados na base de dados");
+                }
+
                 return Ok(new { listaCliente, qtdItens, numPagina });
             }
             catch (Exception ex)
@@ -38,13 +49,22 @@ namespace APIGestaoClientes.Controllers
 
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> BuscaCliente(ClienteDTO clienteDTO, int? id)
+        [HttpGet("get/{id?}")]
+        public async Task<IActionResult> BuscaCliente(ClienteDTOGet clienteDTOGet, int? id)
         {
             try
             {
-                if (id != null && (id != clienteDTO.Id))
-                    return BadRequest("Os Id's informados não são correspondentes.");
+                var clienteDTO = new ClienteDTO()
+                {
+                    IdCliente = id,
+                    Nome = clienteDTOGet.Nome,
+                    CPF = clienteDTOGet.CPF,
+                    Sexo = clienteDTOGet.Sexo,
+                    TipoCliente = new TipoCliente
+                        { DescricaoTipoCliente = clienteDTOGet.DescricaoTipoCliente, Id = clienteDTOGet.TipoClienteId },
+                    SituacaoCliente = new SituacaoCliente
+                        { DescricaoSituacao = clienteDTOGet.DescricaoSituacaoCliente, Id = clienteDTOGet.SituacaoClienteId }
+                };
 
                 var cliente = await _clienteService.GetCliente(clienteDTO);
 
@@ -61,18 +81,29 @@ namespace APIGestaoClientes.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> InsereCliente(ClienteDTO clienteDTO)
+        [HttpPost("post")]
+        public async Task<IActionResult> InsereCliente(ClienteDTOPost clienteDTOPost)
         {
             try
             {
-                if (_clienteService.ValidaCliente(clienteDTO))
+                if (_clienteService.ValidaCliente(clienteDTOPost.Nome, clienteDTOPost.CPF))
                 {
+                    var clienteDTO = new ClienteDTO()
+                    {
+                        Nome = clienteDTOPost.Nome,
+                        CPF = clienteDTOPost.CPF,
+                        Sexo = clienteDTOPost.Sexo,
+                        TipoCliente = new TipoCliente
+                        { DescricaoTipoCliente = null, Id = clienteDTOPost.TipoClienteId },
+                        SituacaoCliente = new SituacaoCliente
+                        { DescricaoSituacao = null, Id = clienteDTOPost.SituacaoClienteId }
+                    };
+                
                     var cliente = await _clienteService.PostCliente(clienteDTO);
 
                     return CreatedAtAction(
                         nameof(BuscaCliente),
-                        new { id = cliente });
+                        new { Id = cliente });
                 }
                 else
                 {
@@ -86,26 +117,32 @@ namespace APIGestaoClientes.Controllers
 
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> AtualizaCliente(int id, ClienteDTO clienteDTO)
+        [HttpPut("put/{id}")]
+        public async Task<IActionResult> AtualizaCliente(int id, ClienteDTOPut clienteDTOPut)
         {
             try
             {
-                if (id != clienteDTO.Id)
+                if (id != clienteDTOPut.IdCliente)
                 {
                     return BadRequest("Os Id's informados não são correspondentes.");
                 }
 
-                if (_clienteService.ValidaCliente(clienteDTO))
+                if (_clienteService.ValidaCliente(clienteDTOPut.Nome, clienteDTOPut.CPF))
                 {
-                    var clienteExiste = await _clienteService.GetCliente(clienteDTO);
-                    if (clienteExiste.Id != 0)
+                    var clienteDTO = new ClienteDTO()
                     {
+                        IdCliente = id,
+                        Nome = clienteDTOPut.Nome,
+                        CPF = clienteDTOPut.CPF,
+                        Sexo = clienteDTOPut.Sexo,
+                        TipoCliente = new TipoCliente
+                        { DescricaoTipoCliente = clienteDTOPut.DescricaoTipoCliente, Id = clienteDTOPut.TipoClienteId },
+                        SituacaoCliente = new SituacaoCliente
+                        { DescricaoSituacao = clienteDTOPut.DescricaoSituacaoCliente, Id = clienteDTOPut.SituacaoClienteId }
+                    };
+                    
                         var cliente = await _clienteService.PutCliente(clienteDTO);
                         return Ok("Alteração realizada com sucesso");
-                    }
-                    else
-                        return NotFound("Id não encontrado na base de dados.");
                 }
                 else
                 {
@@ -118,14 +155,14 @@ namespace APIGestaoClientes.Controllers
             }
         }
 
-        [HttpDelete("{id}/{cpf}")]
+        [HttpDelete("delete/{id}/{cpf}")]
         public async Task<IActionResult> ApagaCliente(int id, string cpf)
         {
             try
             {
                 if (cpf.Length != 11)
                 {
-                    return BadRequest("Os Id's informados não são correspondentes.");
+                    return BadRequest("CPF inválido.");
                 }
 
                 await _clienteService.DeleteCliente(id, cpf);
@@ -136,8 +173,6 @@ namespace APIGestaoClientes.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
         }
-
     }
 }

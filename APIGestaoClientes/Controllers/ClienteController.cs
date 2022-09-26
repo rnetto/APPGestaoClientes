@@ -144,9 +144,9 @@ namespace APIGestaoClientes.Controllers
                         CPF = clienteDTOPut.CPF,
                         Sexo = clienteDTOPut.Sexo,
                         TipoCliente = new TipoCliente
-                        { DescricaoTipoCliente = clienteDTOPut.DescricaoTipoCliente, Id = clienteDTOPut.TipoClienteId },
+                        { DescricaoTipoCliente = null, Id = clienteDTOPut.TipoClienteId },
                         SituacaoCliente = new SituacaoCliente
-                        { DescricaoSituacao = clienteDTOPut.DescricaoSituacaoCliente, Id = clienteDTOPut.SituacaoClienteId }
+                        { DescricaoSituacao = null, Id = clienteDTOPut.SituacaoClienteId }
                     };
                     
                         var cliente = await _clienteService.PutCliente(clienteDTO);

@@ -19,7 +19,7 @@ namespace APIGestaoClientes.Controllers
         }
 
         [HttpGet("get")]
-        public async Task<IActionResult> ListaCliente(int? qtdItens, int? numPagina)
+        public async Task<IActionResult> ListaCliente(int? qtdItens, int? numPagina, ClienteDTOGet clienteDTOGet)
         {
             try
             {
@@ -33,7 +33,18 @@ namespace APIGestaoClientes.Controllers
                     numPagina = 1;
                 }
 
-                var listaCliente = await _clienteService.GetListaCliente(qtdItens, numPagina);
+                var clienteDTO = new ClienteDTO()
+                {
+                    Nome = clienteDTOGet.Nome,
+                    CPF = clienteDTOGet.CPF,
+                    Sexo = clienteDTOGet.Sexo,
+                    TipoCliente = new TipoCliente
+                    { DescricaoTipoCliente = clienteDTOGet.DescricaoTipoCliente, Id = clienteDTOGet.TipoClienteId },
+                    SituacaoCliente = new SituacaoCliente
+                    { DescricaoSituacao = clienteDTOGet.DescricaoSituacaoCliente, Id = clienteDTOGet.SituacaoClienteId }
+                };
+
+                var listaCliente = await _clienteService.GetListaCliente(clienteDTOGet, qtdItens, numPagina);
 
                 if (listaCliente == null)
                 {
@@ -49,24 +60,21 @@ namespace APIGestaoClientes.Controllers
 
         }
 
-        [HttpGet("get/{id?}")]
-        public async Task<IActionResult> BuscaCliente(ClienteDTOGet clienteDTOGet, int? id)
+        [HttpGet("getId")]
+        public async Task<IActionResult> BuscaCliente(int? id, string cpf)
         {
             try
             {
-                var clienteDTO = new ClienteDTO()
+                if(cpf == null && id == null)
                 {
-                    IdCliente = id,
-                    Nome = clienteDTOGet.Nome,
-                    CPF = clienteDTOGet.CPF,
-                    Sexo = clienteDTOGet.Sexo,
-                    TipoCliente = new TipoCliente
-                        { DescricaoTipoCliente = clienteDTOGet.DescricaoTipoCliente, Id = clienteDTOGet.TipoClienteId },
-                    SituacaoCliente = new SituacaoCliente
-                        { DescricaoSituacao = clienteDTOGet.DescricaoSituacaoCliente, Id = clienteDTOGet.SituacaoClienteId }
-                };
+                    throw new Exception("Favor inserir Id e/ou CPF válidos para realizar a busca.");
+                }
+                if(cpf != null && cpf.Length != 11)
+                {
+                    throw new Exception("Favor inserir CPF válido para realizar a busca.");
+                }
 
-                var cliente = await _clienteService.GetCliente(clienteDTO);
+                var cliente = await _clienteService.GetCliente(id, cpf);
 
                 if (cliente == null)
                 {

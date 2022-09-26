@@ -5,12 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace APIGestaoClientes.Service
 {
-    public class ClienteService
+    public class ClienteService : IClienteService
     {
         private readonly string _connectionString;
         public ClienteService(IConfiguration configuration)
@@ -18,8 +17,11 @@ namespace APIGestaoClientes.Service
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        internal bool ValidaCliente(string nome, string cpf)
+        public bool ValidaCliente(string nome, string cpf)
         {
+            if (nome == null || cpf == null)
+                return false;
+
             char[] removChar = { ' ', '-', '*', '.', '!', '@', '#', '$', '%', '¨', '&', '(', ')', '_', '+', '{', '}', '?', ';', ':', '.', '>', '<', '|', '/' };
             var nomeTrim = nome.TrimEnd(removChar);
             var cpfTrim = cpf.TrimEnd(removChar);
@@ -33,7 +35,7 @@ namespace APIGestaoClientes.Service
             return true;
         }
 
-        internal async Task<List<ClienteDTO>> GetListaCliente(ClienteDTOGet cliente, int? qtdItens, int? numPagina)
+        public async Task<List<ClienteDTO>> GetListaCliente(ClienteDTOGet cliente, int? qtdItens, int? numPagina)
         {
             var clientesR = new List<ClienteDTO>();
             var query = String.Format(@"stp_Get_Cliente");
@@ -108,7 +110,7 @@ namespace APIGestaoClientes.Service
             return clientesR;
         }
         
-        internal async Task<ClienteDTO> GetCliente(int? id, string cpf)
+        public async Task<ClienteDTO> GetCliente(int? id, string cpf)
         {
             var clienteR = new ClienteDTO();
             var query = String.Format(@"stp_Get_Cliente");
@@ -171,7 +173,7 @@ namespace APIGestaoClientes.Service
             return clienteR;
         }
         
-        internal async Task<int> PostCliente(ClienteDTO cliente)
+        public async Task<int> PostCliente(ClienteDTO cliente)
         {
             var clienteR = 0;
             var statusCode = 0;
@@ -227,7 +229,7 @@ namespace APIGestaoClientes.Service
             }
         }
 
-        internal async Task<int> PutCliente(ClienteDTO cliente)
+        public async Task<int> PutCliente(ClienteDTO cliente)
         {
             var clienteR = 0;
             var msg = "";
@@ -284,7 +286,7 @@ namespace APIGestaoClientes.Service
             }
         }
 
-        internal async Task DeleteCliente(int id, string cpf)
+        public async Task DeleteCliente(int id, string cpf)
         {
             var statusCode = 0;
             var msg = "";

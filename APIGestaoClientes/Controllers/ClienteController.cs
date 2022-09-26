@@ -4,7 +4,6 @@ using APIGestaoClientes.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace APIGestaoClientes.Controllers
@@ -12,7 +11,7 @@ namespace APIGestaoClientes.Controllers
     [Route("api/[controller]")]
     public class ClienteController : ControllerBase
     {
-        private readonly ClienteService _clienteService;
+        private readonly IClienteService _clienteService;
         public ClienteController(IConfiguration configuration)
         {
             _clienteService = new ClienteService(configuration);

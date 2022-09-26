@@ -1,3 +1,4 @@
+using APIGestaoClientes.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ namespace APIGestaoClientes
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IConfiguration>(Configuration);
+            services.AddScoped<IClienteService, ClienteService>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

@@ -1,4 +1,4 @@
-﻿using APIGestaoClientes.DTO;
+﻿using GestaoClientes.Models.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -1,6 +1,6 @@
-﻿using APIGestaoClientes.DTO;
-using APIGestaoClientes.Model;
-using APIGestaoClientes.Service;
+﻿using APIGestaoClientes.Service;
+using GestaoClientes.Models.DTOs;
+using GestaoClientes.Models.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -50,7 +50,14 @@ namespace APIGestaoClientes.Controllers
                     return NotFound("Não há clientes registrados na base de dados");
                 }
 
-                return Ok(new { listaCliente, qtdItens, numPagina });
+                var retorno = new GetDTO()
+                {
+                    ListaClientes = listaCliente,
+                    NumPagina = numPagina,
+                    ItensPagina = qtdItens
+                };
+
+                return Ok(retorno);
             }
             catch (Exception ex)
             {
@@ -89,7 +96,7 @@ namespace APIGestaoClientes.Controllers
         }
 
         [HttpPost("post")]
-        public async Task<IActionResult> InsereCliente(ClienteDTOPost clienteDTOPost)
+        public async Task<IActionResult> InsereCliente([FromBody]ClienteDTOPost clienteDTOPost)
         {
             try
             {
@@ -125,7 +132,7 @@ namespace APIGestaoClientes.Controllers
         }
 
         [HttpPut("put/{id}")]
-        public async Task<IActionResult> AtualizaCliente(int id, ClienteDTOPut clienteDTOPut)
+        public async Task<IActionResult> AtualizaCliente(int id, [FromBody]ClienteDTOPut clienteDTOPut)
         {
             try
             {
@@ -170,6 +177,10 @@ namespace APIGestaoClientes.Controllers
                 if (cpf.Length != 11)
                 {
                     return BadRequest("CPF inválido.");
+                }
+                if (id == 0)
+                {
+                    return BadRequest("ID inválido.");
                 }
 
                 await _clienteService.DeleteCliente(id, cpf);

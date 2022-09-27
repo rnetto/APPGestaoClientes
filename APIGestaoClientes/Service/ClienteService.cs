@@ -1,5 +1,5 @@
-﻿using APIGestaoClientes.DTO;
-using APIGestaoClientes.Model;
+﻿using GestaoClientes.Models.DTOs;
+using GestaoClientes.Models.Models;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
 ﻿
-namespace APIGestaoClientes.Model
+namespace GestaoClientes.Models.Models
 {
     public class Cliente
     {

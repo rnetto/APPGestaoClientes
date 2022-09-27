@@ -37,7 +37,9 @@ namespace APIGestaoClientes
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "APIGestaoClientes v1"));
+
             }
+            app.UseCors("http://localhost:44350");
 
             app.UseHttpsRedirection();
 

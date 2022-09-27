@@ -1,9 +1,8 @@
 ﻿
-namespace APIGestaoClientes.DTO
+namespace GestaoClientes.Models.DTOs
 {
-    public class ClienteDTOPut
+    public class ClienteDTOPost
     {
-        public int IdCliente { get; set; }
         public string Nome { get; set; }
         public string CPF { get; set; }
         public string Sexo { get; set; }

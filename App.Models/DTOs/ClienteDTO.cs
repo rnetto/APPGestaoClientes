@@ -1,6 +1,6 @@
-﻿using APIGestaoClientes.Model;
+﻿using GestaoClientes.Models.Models;
 
-namespace APIGestaoClientes.DTO
+namespace GestaoClientes.Models.DTOs
 {
     public class ClienteDTO
     {

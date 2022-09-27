@@ -1,0 +1,57 @@
+﻿@page "/listarclientes"
+
+@inject ICliente _clientService
+
+<h1>Lista de clientes</h1>
+
+<div>
+    <a href="cadastrarcliente" class="btn btn-info">Cadastrar cliente</a>
+</div>
+
+@if (getDTO.ListaClientes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID cliente</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Sexo</th>
+                <th>Situação cliente</th>
+                <th>Tipo cliente</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in getDTO.ListaClientes)
+            {
+                <tr>
+                    <td>@cliente.IdCliente</td>
+                    <td>@cliente.Nome</td>
+                    <td>@cliente.CPF</td>
+                    <td>@cliente.Sexo</td>
+                    <td>@cliente.SituacaoCliente.DescricaoSituacao</td>
+                    <td>@cliente.TipoCliente.DescricaoTipoCliente</td>
+                    <td>
+                        <a href='/cliente/editarcliente/@cliente.IdCliente' class="btn btn-success">Editar</a>
+                        <a href='/cliente/deletarcliente/@cliente.IdCliente/@cliente.CPF' class="btn btn-danger">Deletar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    public GetDTO getDTO = new GetDTO();
+
+    protected async override Task OnInitializedAsync()
+    {
+        getDTO = await _clientService.GetListaCliente(new ClienteDTOGet(), null, null);
+    }
+}

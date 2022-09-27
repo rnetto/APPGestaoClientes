@@ -1,0 +1,27 @@
+﻿@page "/cadastrarcliente"
+
+@inject ICliente _clientService
+@inject NavigationManager navigation
+
+<h1>Cadastrar cliente</h1>
+
+<ClienteForm ClienteFormDTO="@clienteFormDto" OnValidSubmit="SalvarCadastro"></ClienteForm>
+
+@code {
+    private ClienteFormDTO clienteFormDto = new ClienteFormDTO();
+
+    async Task SalvarCadastro()
+    {
+        var cliente = new ClienteDTOPost()
+        {
+            Nome = clienteFormDto.Nome,
+            CPF = clienteFormDto.CPF,
+            Sexo = clienteFormDto.Sexo,
+            SituacaoClienteId = clienteFormDto.IdSituacaoCliente,
+            TipoClienteId = clienteFormDto.IdTipoCliente
+        };
+
+        await _clientService.PostCliente(cliente);
+    }
+
+}

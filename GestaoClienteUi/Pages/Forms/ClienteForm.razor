@@ -1,0 +1,68 @@
+﻿
+<EditForm Model="@ClienteFormDTO" OnValidSubmit="@OnValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div id="geral" class="container" style="margin-top:15px">
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label" form="nome">Nome Completo</label>
+                        <InputText @bind-Value="ClienteFormDTO.Nome" class="form-control" placeholder="obrigatório" />
+                        <ValidationMessage For="@(() => ClienteFormDTO.Nome)"/>
+                    </div>
+                    <div class="form-group">
+                        <label form="cpf" class="control-label">CPF</label>
+                        <InputText @bind-Value="ClienteFormDTO.CPF" class="form-control" placeholder="CPF obrigatório" />
+                        <ValidationMessage For="@(() => ClienteFormDTO.Nome)" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Sexo</label>
+                        <InputSelect @bind-Value="ClienteFormDTO.Sexo" class="form-control">
+                            <option>Selecione</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="Masculino">Masculino</option>
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <label form="tipocliente" class="control-label">Tipo de cliente</label>
+                        <InputSelect @bind-Value="ClienteFormDTO.IdTipoCliente" class="form-control">
+                            <option>Selecione</option>
+                            <option value="1">Pragmático</option>
+                            <option value="2">Analítico</option>
+                            <option value="3">Afável</option>
+                            <option value="4">Expressivo</option>
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <label form="situacaocliente" class="control-label">Situação de cadastro</label>
+                        <InputSelect @bind-Value="ClienteFormDTO.IdSituacaoCliente" class="form-control">
+                            <option>Selecione</option>
+                            <option value="1">Ativo</option>
+                            <option value="2">Inativo</option>
+
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">Salvar</button>
+                        <button class="btn btn-danger" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                    </div>
+
+                </div>
+            </div>
+    </div>
+
+</EditForm>
+
+@code {
+    [Inject]
+    private NavigationManager navigation { get; set; }
+    [Inject]
+    private ICliente _clienteService { get; set; }
+    [Parameter]
+    public ClienteFormDTO ClienteFormDTO { get; set; }
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+}

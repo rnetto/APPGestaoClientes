@@ -4,7 +4,7 @@
 
 <h3>Instruções para Build do App</h3>
 
-  <h5><b>--></b> Criação do Banco de dados <i>GestaoClientes_DB</i> no <b>SQL SERVER</b></h5>
+  <h4><b>--></b> Criação do Banco de dados <i>GestaoClientes_DB</i> no <b>SQL SERVER</b></h4>
 
 <div id="div1">
     - Na Camada de serviço <i>GestaoClientes.Services</i> a pasta <i>Scripts_gestao_cliente_DB</i> estão todos os SCRIPTs de criação do DB.<br/>
@@ -18,7 +18,7 @@
 <br/>
 </div>
 
-  <h5><b>--></b> Configuração do BUILD do app <i>APPGestaoClientes</i> no <b>Visual Studio</b></h5>
+  <h4><b>--></b> Configuração do BUILD do app <i>APPGestaoClientes</i> no <b>Visual Studio</b></h4>
   
  <div id="div1">
     - Selecionar a Solução 'AppGestaoClientes'. <br/>

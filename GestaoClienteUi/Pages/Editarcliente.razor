@@ -59,9 +59,9 @@
                 clienteFormDto.IdCliente = response.IdCliente;
                 clienteFormDto.Nome = response.Nome;
                 clienteFormDto.CPF = response.CPF;
-                clienteFormDto.Sexo = response.Sexo;
-                clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
-                clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+                clienteFormDto.Sexo = response.Sexo; 
+                clienteFormDto.IdSituacaoCliente = response.SituacaoCliente.Id;
+                clienteFormDto.IdTipoCliente = response.TipoCliente.Id;
             }
             else
             {

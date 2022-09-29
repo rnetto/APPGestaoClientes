@@ -27,7 +27,9 @@
 
             msg = "Erro ao realizar cadastro! Tente novamente.";
             StateHasChanged();
+            return;
         }
+
         var cliente = new ClienteDTOPost()
         {
             Nome = clienteFormDto.Nome,

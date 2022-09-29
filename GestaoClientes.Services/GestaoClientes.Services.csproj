@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\App.Models\GestaoClientes.Models.csproj" />
+    <ProjectReference Include="..\GestaoClientes.Models\GestaoClientes.Models.csproj" />
   </ItemGroup>
 
 </Project>

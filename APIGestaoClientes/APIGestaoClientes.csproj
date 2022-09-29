@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\App.Models\GestaoClientes.Models.csproj" />
-    <ProjectReference Include="..\App.Services\GestaoClientes.Services.csproj" />
+    <ProjectReference Include="..\GestaoClientes.Models\GestaoClientes.Models.csproj" />
+    <ProjectReference Include="..\GestaoClientes.Services\GestaoClientes.Services.csproj" />
   </ItemGroup>
 
 </Project>

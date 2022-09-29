@@ -24,7 +24,7 @@
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-success">Buscar</button>
-                    <button type="reset" class="btn btn-dark" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                    <button type="reset" class="btn btn-dark" @onclick="@(() => LimparTela())">Cancelar</button>
                 </div>
             </EditForm>
         }
@@ -59,7 +59,7 @@
                 clienteFormDto.IdCliente = response.IdCliente;
                 clienteFormDto.Nome = response.Nome;
                 clienteFormDto.CPF = response.CPF;
-                clienteFormDto.Sexo = response.Sexo; 
+                clienteFormDto.Sexo = response.Sexo;
                 clienteFormDto.IdSituacaoCliente = response.SituacaoCliente.Id;
                 clienteFormDto.IdTipoCliente = response.TipoCliente.Id;
             }
@@ -96,7 +96,7 @@
             clienteFormDto = null;
             StateHasChanged();
             await Task.Delay(3000);
-            navigation.NavigateTo("listarclientes");
+            LimparTela();
         }
     }
 
@@ -124,8 +124,16 @@
             clienteFormDto.CPF = response.CPF;
             clienteFormDto.Sexo = response.Sexo;
             clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
-            clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+            clienteFormDto.IdTipoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
         }
     }
+
+    public void LimparTela()
+    {
+        clienteId = null;
+        msg = "Insira ID para buscar e editar um cadastro.";
+        StateHasChanged();
+    }
+
 
 }

@@ -46,7 +46,7 @@
                             </div>
                             <div class="form-group">
                                 <button type="submit" class="btn btn-danger">Apagar</button>
-                                <button type="reset" class="btn btn-info" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                                <button type="reset" class="btn btn-info" @onclick="@(() => LimpaTela())">Cancelar</button>
                             </div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
             clienteId = null;
             StateHasChanged();
             await Task.Delay(3000);
-            navigation.NavigateTo("apagarcliente");
+            LimpaTela();
         }
     }
 
@@ -143,6 +143,14 @@
             clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
             clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
         }
+    }
+
+    public void LimpaTela()
+    {
+        clienteId = null;
+        clienteFormDto.IdCliente = null;
+        msg = "Insira ID para buscar e apagar um cadastro.";
+        StateHasChanged();
     }
 
 }

@@ -136,8 +136,10 @@
         {
             msg = "Cadastro apagado com sucesso!";
             StateHasChanged();
-
-            navigation.NavigateTo("listarclientes");
+            await Task.Delay(2000);
+            await GetListaClientes(ipag, npag);
+            msg = "";
+            StateHasChanged();
         }
     }
 }

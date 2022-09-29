@@ -1,4 +1,4 @@
-using GestaoClienteUi.ServiceUi;
+using GestaoClientes.Services.ServiceUi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

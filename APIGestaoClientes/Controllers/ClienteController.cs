@@ -1,4 +1,4 @@
-﻿using APIGestaoClientes.Service;
+﻿using GestaoClientes.Services.ServiceApi;
 using GestaoClientes.Models.DTOs;
 using GestaoClientes.Models.Models;
 using Microsoft.AspNetCore.Mvc;

@@ -92,11 +92,11 @@
         }
         else
         {
-            msg = "<b>Cadastro atualizado com sucesso!<b>";
+            msg = "Cadastro atualizado com sucesso!";
             clienteFormDto = null;
             StateHasChanged();
             await Task.Delay(3000);
-            navigation.NavigateTo("listarcliente");
+            navigation.NavigateTo("listarclientes");
         }
     }
 

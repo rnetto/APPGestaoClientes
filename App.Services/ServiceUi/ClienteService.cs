@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace GestaoClienteUi.ServiceUi
+namespace GestaoClientes.Services.ServiceUi
 {
     public class ClienteService : ICliente
     {

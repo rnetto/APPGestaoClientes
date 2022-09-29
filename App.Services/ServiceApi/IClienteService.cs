@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace APIGestaoClientes.Service
+namespace GestaoClientes.Services.ServiceApi
 {
     public interface IClienteService
     {

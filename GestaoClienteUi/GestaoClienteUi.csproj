@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\App.Models\GestaoClientes.Models.csproj" />
+    <ProjectReference Include="..\App.Services\GestaoClientes.Services.csproj" />
   </ItemGroup>
 
 </Project>

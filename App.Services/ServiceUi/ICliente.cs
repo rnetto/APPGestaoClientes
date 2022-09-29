@@ -1,7 +1,7 @@
 ﻿using GestaoClientes.Models.DTOs;
 using System.Threading.Tasks;
 
-namespace GestaoClienteUi.ServiceUi
+namespace GestaoClientes.Services.ServiceUi
 {
     public interface ICliente
     {

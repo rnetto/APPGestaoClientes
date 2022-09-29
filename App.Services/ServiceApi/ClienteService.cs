@@ -7,7 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 
-namespace APIGestaoClientes.Service
+namespace GestaoClientes.Services.ServiceApi
 {
     public class ClienteService : IClienteService
     {

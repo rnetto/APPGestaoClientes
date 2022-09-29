@@ -1,0 +1,39 @@
+﻿<div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">@Titulo</h5>
+                <button type="button" class="close" @onclick="CancelModal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Texto
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CancelModal">Cancelar</button>
+                <button type="button" class="btn btn-primary" @onclick="() => OkModal(true)">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public string Titulo { get; set; }
+    [Parameter]
+    public string Texto { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnClose { get; set; }
+
+    private Task CancelModal()
+    {
+        return OnClose.InvokeAsync(false);
+    }
+
+    private Task OkModal(bool deleta)
+    {
+        return OnClose.InvokeAsync(true);
+    }
+
+}

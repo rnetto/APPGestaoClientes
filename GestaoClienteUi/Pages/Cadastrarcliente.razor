@@ -2,16 +2,32 @@
 
 @inject ICliente _clientService
 @inject NavigationManager navigation
+<div class="container-fluid">
+    <div class="toast-header">
+        <h1>Cadastrar cliente</h1>
+    </div>
+    <div style="margin-top:15px">
+        @if (!string.IsNullOrWhiteSpace(msg))
+        {
+            <p><em>@msg</em></p>
+        }
 
-<h1>Cadastrar cliente</h1>
-
-<ClienteForm ClienteFormDTO="@clienteFormDto" OnValidSubmit="SalvarCadastro"></ClienteForm>
+        <ClienteForm ClienteFormDTO="@clienteFormDto" OnValidSubmit="SalvarCadastro"></ClienteForm>
+    </div>
+</div>
 
 @code {
     private ClienteFormDTO clienteFormDto = new ClienteFormDTO();
+    public string msg { get; set; }
 
     async Task SalvarCadastro()
     {
+        if (clienteFormDto == null)
+        {
+
+            msg = "Erro ao realizar cadastro! Tente novamente.";
+            StateHasChanged();
+        }
         var cliente = new ClienteDTOPost()
         {
             Nome = clienteFormDto.Nome,
@@ -21,7 +37,20 @@
             TipoClienteId = clienteFormDto.IdTipoCliente
         };
 
-        await _clientService.PostCliente(cliente);
+        var response = await _clientService.PostCliente(cliente);
+
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            msg = "Erro ao realizar cadastro! Tente novamente.";
+            StateHasChanged();
+        }
+        else
+        {
+            msg = "Cadastro realizado com sucesso!";
+            StateHasChanged();
+            await Task.Delay(3000);
+            navigation.NavigateTo("listarclientes");
+        }
     }
 
 }

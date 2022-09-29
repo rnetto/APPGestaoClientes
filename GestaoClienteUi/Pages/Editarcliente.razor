@@ -1,12 +1,131 @@
-﻿@page "/editarcliente"
+﻿@page "/editarcliente/{clienteId:int?}"
 
 @inject ICliente _clientService
+@inject NavigationManager navigation
 
-<h1>Editar cliente</h1>
+<div class="container-fluid">
+    <div class="toast-header">
+        <h1>Editar cliente</h1>
+    </div>
+    <div style="margin-top:15px">
+        @if (clienteFormDto == null)
+        {
+            <a><em>@msg</em></a>
+        }
+        else if (clienteId == null)
+        {
+            <a><em>@msg</em></a>
+            <br />
+            <EditForm Model="@clienteFormDto" OnSubmit="BuscarCadastro">
 
-<p>This component demonstrates fetching data from a service.</p>
-
+                <div class="form-group">
+                    <label class="control-label" form="idcliente"><b>Id cliente</b></label>
+                    <InputNumber @bind-Value="clienteFormDto.IdCliente" class="form-control-sm" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Buscar</button>
+                    <button type="reset" class="btn btn-dark" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <ClienteForm ClienteFormDTO="@clienteFormDto" OnValidSubmit="EditarCadastro"></ClienteForm>
+        }
+    </div>
+</div>
 
 @code {
+    private ClienteFormDTO clienteFormDto = new ClienteFormDTO();
+
+    [Parameter]
+    public int? clienteId { get; set; }
+    [Parameter]
+    public string msg { get; set; } = "Carregando dados do cliente...";
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (clienteId == null)
+        {
+            msg = "Insira ID para buscar e editar um cadastro.";
+        }
+        else
+        {
+            var response = await _clientService.GetCliente(clienteId);
+
+            if (response.IdCliente != null)
+            {
+                clienteId = response.IdCliente;
+                clienteFormDto.IdCliente = response.IdCliente;
+                clienteFormDto.Nome = response.Nome;
+                clienteFormDto.CPF = response.CPF;
+                clienteFormDto.Sexo = response.Sexo;
+                clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
+                clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+            }
+            else
+            {
+                msg = "Erro ao carregar cadastro! Tente novamente.";
+                clienteFormDto.IdCliente = null;
+            }
+        }
+    }
+
+    async Task EditarCadastro()
+    {
+        var cliente = new ClienteDTOPut()
+        {
+            IdCliente = (int)clienteFormDto.IdCliente,
+            Nome = clienteFormDto.Nome,
+            CPF = clienteFormDto.CPF,
+            Sexo = clienteFormDto.Sexo,
+            SituacaoClienteId = clienteFormDto.IdSituacaoCliente,
+            TipoClienteId = clienteFormDto.IdTipoCliente
+        };
+
+        var reqisicao = await _clientService.PutCliente((int)clienteId, cliente);
+
+        if (!string.IsNullOrWhiteSpace(reqisicao))
+        {
+            msg = "Erro ao atualizar cadastro! Tente novamente. " + reqisicao;
+            clienteFormDto = null;
+        }
+        else
+        {
+            msg = "<b>Cadastro atualizado com sucesso!<b>";
+            clienteFormDto = null;
+            StateHasChanged();
+            await Task.Delay(3000);
+            navigation.NavigateTo("listarcliente");
+        }
+    }
+
+    async Task BuscarCadastro()
+    {
+        if (clienteFormDto.IdCliente == null)
+        {
+            msg = "Id inválido!";
+            clienteFormDto.IdCliente = null;
+            return;
+        }
+
+        var response = await _clientService.GetCliente(clienteFormDto.IdCliente);
+
+        if (!response.IdCliente.HasValue)
+        {
+            msg = "Cliente não encontrado na base de dados. Tente novamente.";
+            clienteFormDto.IdCliente = null;
+        }
+        else
+        {
+            clienteId = response.IdCliente;
+            clienteFormDto.IdCliente = response.IdCliente;
+            clienteFormDto.Nome = response.Nome;
+            clienteFormDto.CPF = response.CPF;
+            clienteFormDto.Sexo = response.Sexo;
+            clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
+            clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+        }
+    }
 
 }

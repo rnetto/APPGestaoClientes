@@ -1,11 +1,148 @@
-﻿@page "/apagarcliente"
+﻿@page "/apagarcliente/{clienteId:int?}"
 
 @inject ICliente _clientService
+@inject NavigationManager navigation
 
-<h1>Apagar cliente</h1>
+<div class="container-fluid">
+    <div class="toast-header">
+        <h1>Apagar cliente</h1>
+    </div>
+    <div style="margin-top:15px">
+        @if (clienteFormDto == null)
+        {
+            <a><em>@msg</em></a>
+        }
+        else if (clienteId == null)
+        {
+            <a><em>@msg</em></a>
+            <br />
 
+            <EditForm Model="@clienteFormDto" OnSubmit="BuscarCadastro">
 
+                <div class="form-group">
+                    <label class="control-label" form="idcliente"><b>Id cliente</b></label>
+                    <InputNumber @bind-Value="clienteFormDto.IdCliente" class="form-control-sm" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Buscar</button>
+                    <button type="reset" class="btn btn-dark" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <EditForm Model="@clienteFormDto" OnSubmit="ApagarCadastro">
+                <div id="geral" class="container" style="margin-top:15px">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-control"><b>Id Cliente - </b>@clienteFormDto.IdCliente</label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control" form="nome"><b>Nome Completo -</b> @clienteFormDto.Nome</label>
+                            </div>
+                            <div class="form-group">
+                                <label form="cpf" class="form-control"><b>CPF -</b> @clienteFormDto.CPF</label>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-danger">Apagar</button>
+                                <button type="reset" class="btn btn-info" @onclick="@(() => navigation.NavigateTo("listarclientes"))">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
 
+    </div>
+</div>
 @code {
+
+    private ClienteFormDTO clienteFormDto = new ClienteFormDTO();
+
+    [Parameter]
+    public int? clienteId { get; set; }
+    [Parameter]
+    public string msg { get; set; } = "Carregando dados do cliente...";
+
+    protected async override Task OnParametersSetAsync()
+    {
+        if (clienteId == null)
+        {
+            msg = "Insira ID para buscar e apagar um cadastro.";
+        }
+        else
+        {
+            var response = await _clientService.GetCliente(clienteId);
+
+            if (response.IdCliente != null)
+            {
+                clienteId = response.IdCliente;
+                clienteFormDto.IdCliente = response.IdCliente;
+                clienteFormDto.Nome = response.Nome;
+                clienteFormDto.CPF = response.CPF;
+                clienteFormDto.Sexo = response.Sexo;
+                clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
+                clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+            }
+            else
+            {
+                msg = "Erro ao buscar cadastro! Tente novamente.";
+                clienteFormDto.IdCliente = null;
+            }
+        }
+    }
+
+    async Task ApagarCadastro()
+    {
+        var reqisicao = "";
+
+        if (clienteId == clienteFormDto.IdCliente || !string.IsNullOrWhiteSpace(clienteFormDto.CPF))
+        {
+            reqisicao = await _clientService.DeleteCliente((int)clienteId, clienteFormDto.CPF);
+        }
+
+        if (!string.IsNullOrWhiteSpace(reqisicao))
+        {
+            msg = "Erro ao apagar cadastro! Tente novamente. " + reqisicao;
+            clienteFormDto = null;
+        }
+        else
+        {
+            msg = "Cadastro apagado com sucesso!";
+            clienteId = null;
+            StateHasChanged();
+            await Task.Delay(3000);
+            navigation.NavigateTo("apagarcliente");
+        }
+    }
+
+    async Task BuscarCadastro()
+    {
+        if (clienteFormDto.IdCliente == null)
+        {
+            msg = "Cliente não encontrado na base de dados. Tente novamente.";
+            clienteFormDto.IdCliente = null;
+            return;
+        }
+
+        var response = await _clientService.GetCliente(clienteFormDto.IdCliente);
+
+        if (!response.IdCliente.HasValue)
+        {
+            msg = "Cliente não encontrado na base de dados. Tente novamente.";
+            clienteFormDto.IdCliente = null;
+        }
+        else
+        {
+            clienteId = response.IdCliente;
+            clienteFormDto.IdCliente = response.IdCliente;
+            clienteFormDto.Nome = response.Nome;
+            clienteFormDto.CPF = response.CPF;
+            clienteFormDto.Sexo = response.Sexo;
+            clienteFormDto.IdSituacaoCliente = response.SituacaoCliente == null ? null : response.SituacaoCliente.Id;
+            clienteFormDto.IdSituacaoCliente = response.TipoCliente == null ? null : response.TipoCliente.Id;
+        }
+    }
 
 }

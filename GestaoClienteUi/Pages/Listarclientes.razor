@@ -1,57 +1,143 @@
 ﻿@page "/listarclientes"
 
 @inject ICliente _clientService
+@inject NavigationManager navigation
 
-<h1>Lista de clientes</h1>
 
-<div>
-    <a href="cadastrarcliente" class="btn btn-info">Cadastrar cliente</a>
+<div class="container-fluid">
+    <div class="toast-header">
+        <h1>Lista de clientes</h1>
+    </div>
+    <div style="margin-top:15px">
+        <a href="cadastrarcliente" class="btn btn-info">Cadastrar cliente</a>
+    </div>
+
+    @if (getDTO == null)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <div class="container-fluid" style="margin-top:15px">
+            <h4 style="margin-top:15px"><em>@msg</em></h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID cliente</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Sexo</th>
+                        <th>Situação cliente</th>
+                        <th>Tipo cliente</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (getDTO.ListaClientes == null)
+                    {
+                        <tr>
+                            Não há registros disponíveis na base de dados.
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var cliente in getDTO.ListaClientes)
+                        {
+                            <tr>
+                                <td>@cliente.IdCliente</td>
+                                <td>@cliente.Nome</td>
+                                <td>@cliente.CPF</td>
+                                <td>@cliente.Sexo</td>
+                                <td>@cliente.SituacaoCliente.DescricaoSituacao</td>
+                                <td>@cliente.TipoCliente.DescricaoTipoCliente</td>
+                                <td>
+                                    <a class="btn btn-outline-success" href='/cliente/editarcliente/@cliente.IdCliente'>Editar</a>
+                                    <button type="button" class="btn btn-outline-danger" @onclick="() => onNotificacaoAbre(cliente.IdCliente, cliente.Nome)">Deletar</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            @if (getDTO.ListaClientes != null)
+            {
+        <div class="d-sm-inline-flex">
+            <button type="button" class="btn btn-group-sm" @onclick="() => GetListaClientes(ipag, npag -1)">Anterior</button>
+            <button type="button" class="btn btn-group-sm" @onclick="() => GetListaClientes(ipag, npag +1)">Próxima</button>
+        </div>
+            }
+        </div>
+    }
 </div>
 
-@if (getDTO.ListaClientes == null)
+@if (notificaModal)
 {
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID cliente</th>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>Sexo</th>
-                <th>Situação cliente</th>
-                <th>Tipo cliente</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cliente in getDTO.ListaClientes)
-            {
-                <tr>
-                    <td>@cliente.IdCliente</td>
-                    <td>@cliente.Nome</td>
-                    <td>@cliente.CPF</td>
-                    <td>@cliente.Sexo</td>
-                    <td>@cliente.SituacaoCliente.DescricaoSituacao</td>
-                    <td>@cliente.TipoCliente.DescricaoTipoCliente</td>
-                    <td>
-                        <a href='/cliente/editarcliente/@cliente.IdCliente' class="btn btn-success">Editar</a>
-                        <a href='/cliente/deletarcliente/@cliente.IdCliente/@cliente.CPF' class="btn btn-danger">Deletar</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <ModalForm Titulo="Info Cadastro" Texto="@txt" OnClose="onNotificacaoFecha"></ModalForm>
 }
 
 @code {
 
-    public GetDTO getDTO = new GetDTO();
+    public GetDTO getDTO { get; set; }
+    public bool notificaModal { get; set; }
+    public string txt { get; set; }
+    public string msg { get; set; }
+    public int? _id { get; set; }
+    public int npag { get; set; } = 1;
+    public int ipag { get; set; } = 20;
 
     protected async override Task OnInitializedAsync()
     {
-        getDTO = await _clientService.GetListaCliente(new ClienteDTOGet(), null, null);
+        await GetListaClientes(ipag, npag);
+    }
+
+    protected async Task GetListaClientes(int qtdIt, int numpag)
+    {
+        getDTO = await _clientService.GetListaCliente(null, qtdIt, numpag);
+        if (getDTO != null)
+        {
+            npag = getDTO.NumPagina ?? 1;
+            ipag = getDTO.ItensPagina ?? 20;
+        }
+    }
+
+    private void onNotificacaoFecha(bool deleta)
+    {
+        notificaModal = false;
+        StateHasChanged();
+        if (deleta)
+        {
+            ApagarCadastro(_id);
+        }
+    }
+
+    private void onNotificacaoAbre(int? id, string nome)
+    {
+        txt = "Deseja realmente excluir o cliente " + id + " - " + nome + " ?";
+        _id = id;
+        notificaModal = true;
+        StateHasChanged();
+    }
+
+    async Task ApagarCadastro(int? id)
+    {
+        var reqisicao = "";
+
+        if (id != null)
+        {
+            reqisicao = await _clientService.DeleteCliente((int)id, null);
+        }
+
+        if (!string.IsNullOrWhiteSpace(reqisicao))
+        {
+            msg = "Erro ao apagar cadastro! Tente novamente. ";
+            StateHasChanged();
+        }
+        else
+        {
+            msg = "Cadastro apagado com sucesso!";
+            StateHasChanged();
+
+            navigation.NavigateTo("listarclientes");
+        }
     }
 }

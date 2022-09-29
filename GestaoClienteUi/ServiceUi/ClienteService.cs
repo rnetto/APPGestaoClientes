@@ -1,4 +1,5 @@
 ﻿using GestaoClientes.Models.DTOs;
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -33,57 +34,101 @@ namespace GestaoClienteUi.ServiceUi
 
         public async Task<GetDTO> GetListaCliente(ClienteDTOGet cliente, int? qtdItens, int? numPagina)
         {
+            if (cliente == null)
+                cliente = new ClienteDTOGet();
+
             var filtro = $"/api/cliente/get?qtdItens={qtdItens}&numPagina={numPagina}&nome={ cliente.Nome}" +
                          $"&cpf={ cliente.CPF}&sexo={cliente.Sexo}&tipoclienteid={cliente.TipoClienteId}" +
                          $"&situacaoclienteid={cliente.SituacaoClienteId}";
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<GetDTO>(filtro);
+            }
+            catch (Exception ex)
+            {
+                return new GetDTO() { MsgRetorno = ex.Message };
+            }
 
-            return await _httpClient.GetFromJsonAsync<GetDTO>(filtro);
         }
 
-        public async Task<ClienteDTO> GetCliente(int? id, string cpf)
+        public async Task<ClienteDTO> GetCliente(int? id)
         {
-            var filtro = $"/api/cliente/getId?id={id}&cpf={cpf}";
+            var filtro = $"/api/cliente/getId?id={id}";
+            if (id == null)
+                return new ClienteDTO();
 
-            return await _httpClient.GetFromJsonAsync<ClienteDTO>(filtro);
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ClienteDTO>(filtro);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+                return new ClienteDTO();
+            }
         }
 
         public async Task<string> PostCliente(ClienteDTOPost clienteDTOPost)
         {
-            var url = "api/cliente/post";            
-
-            var post = await _httpClient.PostAsJsonAsync(url, clienteDTOPost);
-
-
-            if(post.StatusCode == System.Net.HttpStatusCode.OK)
+            var url = "api/cliente/post";
+            try
             {
-                return post.Content.ReadFromJsonAsync<string>().ToString();
+                var post = await _httpClient.PostAsJsonAsync(url, clienteDTOPost);
+
+                if (post.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return null;
+                }
+                else
+                    return post.StatusCode + " - " + post.Content.ReadFromJsonAsync<string>().ToString();
             }
-            else
-                return post.StatusCode + post.Content.ReadFromJsonAsync<string>().ToString();
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
-        public async Task<string> PutCliente(int id,ClienteDTOPut clienteDTOPut)
+        public async Task<string> PutCliente(int id, ClienteDTOPut clienteDTOPut)
         {
             var url = $"api/cliente/put/{id}";
-
-            var put = await _httpClient.PutAsJsonAsync(url, clienteDTOPut);
-
-            if (put.StatusCode == System.Net.HttpStatusCode.OK)
+            try
             {
-                return put.Content.ReadFromJsonAsync<string>().ToString();
+                var put = await _httpClient.PutAsJsonAsync(url, clienteDTOPut);
+
+                if (put.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return null;
+                }
+                else
+                    return put.StatusCode + " - " + put.Content.ReadFromJsonAsync<string>().ToString();
             }
-            else
-                return put.StatusCode + put.Content.ReadFromJsonAsync<string>().ToString();
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+
         }
 
         public async Task<string> DeleteCliente(int id, string cpf)
         {
             var url = $"api/cliente/delete/{id}/{cpf}";
+            try
+            {
+                var del = await _httpClient.DeleteAsync(url);
 
-            var delete = await _httpClient.DeleteAsync(url);
-            var content = await delete.Content.ReadFromJsonAsync<string>();
+                if (del.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return null;
+                }
+                else
+                    return del.StatusCode + " - " + del.Content.ReadFromJsonAsync<string>().ToString();
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
 
-            return content;
         }
     }
 }

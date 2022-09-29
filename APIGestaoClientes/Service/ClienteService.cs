@@ -58,6 +58,7 @@ namespace APIGestaoClientes.Service
                 try
                 {
                     var retorno = await command.ExecuteReaderAsync();
+
                     if (retorno.FieldCount == 3)
                     {
                         while (await retorno.ReadAsync())
@@ -105,6 +106,10 @@ namespace APIGestaoClientes.Service
                 {
                     throw new Exception(ex.Message);
                 }
+                finally
+                {
+                    conn.Close();
+                }
             }
 
             return clientesR;
@@ -127,6 +132,7 @@ namespace APIGestaoClientes.Service
                 try
                 {
                     var retorno = await command.ExecuteReaderAsync();
+
                     while (await retorno.ReadAsync())
                     {
                         clienteR.IdCliente = Convert.ToInt32(retorno["id_cliente"].ToString());
@@ -161,12 +167,17 @@ namespace APIGestaoClientes.Service
 
                         }
                     }
+
                     await retorno.CloseAsync();
 
                 }
                 catch (Exception ex)
                 {
                     throw new Exception(ex.Message);
+                }
+                finally
+                {
+                    conn.Close();
                 }
             }
 
@@ -187,8 +198,8 @@ namespace APIGestaoClientes.Service
                 command.Parameters.Add(new SqlParameter("nome", cliente.Nome == null ? DBNull.Value : cliente.Nome));
                 command.Parameters.Add(new SqlParameter("cpf", cliente.CPF == null ? DBNull.Value : cliente.CPF));
                 command.Parameters.Add(new SqlParameter("sexo", cliente.Sexo == null ? DBNull.Value : cliente.Sexo));
-                command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id == null ? DBNull.Value : cliente.SituacaoCliente.Id));
-                command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id == null ? DBNull.Value : cliente.TipoCliente.Id));
+                command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id == null ? 0 : cliente.SituacaoCliente.Id));
+                command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id == null ? 0 : cliente.TipoCliente.Id));
 
                 await conn.OpenAsync();
                 var tran = conn.BeginTransaction(IsolationLevel.ReadUncommitted);
@@ -244,8 +255,8 @@ namespace APIGestaoClientes.Service
                 command.Parameters.Add(new SqlParameter("nome", cliente.Nome == null ? DBNull.Value : cliente.Nome));
                 command.Parameters.Add(new SqlParameter("cpf", cliente.CPF == null ? DBNull.Value : cliente.CPF));
                 command.Parameters.Add(new SqlParameter("sexo", cliente.Sexo == null ? DBNull.Value : cliente.Sexo));
-                command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id == null ? DBNull.Value : cliente.SituacaoCliente.Id));
-                command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id == null ? DBNull.Value : cliente.TipoCliente.Id));
+                command.Parameters.Add(new SqlParameter("id_situacao_cliente", cliente.SituacaoCliente.Id == null ? 0 : cliente.SituacaoCliente.Id));
+                command.Parameters.Add(new SqlParameter("id_tipo_cliente", cliente.TipoCliente.Id == null ? 0 : cliente.TipoCliente.Id));
 
                 await conn.OpenAsync();
                 var tran = conn.BeginTransaction(IsolationLevel.ReadUncommitted);
@@ -296,7 +307,7 @@ namespace APIGestaoClientes.Service
                 var command = new SqlCommand(query, conn);
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.Add(new SqlParameter("id_cliente", id));
-                command.Parameters.Add(new SqlParameter("cpf", cpf));
+                command.Parameters.Add(new SqlParameter("cpf", cpf == null ? DBNull.Value : cpf));
 
                 await conn.OpenAsync();
                 var tran = conn.BeginTransaction(IsolationLevel.ReadUncommitted);
@@ -305,6 +316,7 @@ namespace APIGestaoClientes.Service
                 try
                 {
                     var retorno = await command.ExecuteReaderAsync();
+
                     while (await retorno.ReadAsync())
                     {
                         statusCode = Convert.ToInt32(retorno["id_status"].ToString());
@@ -318,7 +330,7 @@ namespace APIGestaoClientes.Service
                     }
 
                     await tran.CommitAsync();
-                    await conn.CloseAsync();
+
                 }
                 catch (Exception ex)
                 {

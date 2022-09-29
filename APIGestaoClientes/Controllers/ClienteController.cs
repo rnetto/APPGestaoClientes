@@ -169,12 +169,12 @@ namespace APIGestaoClientes.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}/{cpf}")]
+        [HttpDelete("delete/{id}/{cpf?}")]
         public async Task<IActionResult> ApagaCliente(int id, string cpf)
         {
             try
             {
-                if (cpf.Length != 11)
+                if (cpf != null && cpf.Length != 11)
                 {
                     return BadRequest("CPF inválido.");
                 }
